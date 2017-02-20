@@ -151,14 +151,23 @@ def atomExecutor(originalMatrix , rotateMatrixAll , axisChoice , axisBlockNum , 
     #获取坐标值，注意，这个坐标可能是1个值，也可能是2个值，因此是一个矩阵结构（理解成list也行）
     axisValueList = blockToAxisValue(axisBlockNum)
     listSize = len(axisValueList)
-    #以下针对原始矩阵中符合条件的向量进行旋转操作
-    for sides in range( 6 ):
-        allGridsInOneSide = OriginalMatrix[sides]
-        for gridCount in range(N * N):
-            singleGrid = allGridsInOneSide[gridCount]
-            for axisCount in range(listSize):
-                if singleGrid[axisChoice] == axisValueList[axisCount]:
-                    singleGrid = singleGrid.dot(theRotateMetrix)
+
+    #操作执行器,尝试循环100次
+    for round in range(10000):
+        #针对2阶魔方，有6个可动选项，每个选项有0，1，2，3倍的90度动作。
+        #可动块区域选项配置，结果也应该提供
+        axisChoice = random.randint(0,2)
+        axisBlockNum = random.randint(0,N-1)
+        #90度旋转倍数配置
+        clockwiseTimes = random.randint(1, 4)
+        #以下针对原始矩阵中符合条件的向量进行旋转操作(以下是遍历＋操作过程)
+        for sides in range( 6 ):
+            allGridsInOneSide = OriginalMatrix[sides]
+            for gridCount in range(N * N):
+                singleGrid = allGridsInOneSide[gridCount]
+                for axisCount in range(listSize):
+                    if singleGrid[axisChoice] == axisValueList[axisCount]:
+                        singleGrid = singleGrid.dot(theRotateMetrix)
 
     traceFile.write(str(OriginalMatrix) + "\n")
     traceFile.write("##########################" + "\n")
@@ -190,15 +199,7 @@ if __name__ == "__main__":
     #打开一个文件，用于保存状态
     traceFile = open('./traceRoute','w')
 
-    #操作执行器,尝试循环100次
-    for round in range(10000):
-        #针对2阶魔方，有6个可动选项，每个选项有0，1，2，3倍的90度动作。
-        #可动块区域选项配置，结果也应该提供
-        axisChoice = random.randint(0,2)
-        axisBlockNum = random.randint(0,N-1)
-        #90度旋转倍数配置
-        clockwiseTimes = random.randint(1, 4)
-        atomExecutor(originalMatrix ,rotateMatrixAll,  axisChoice , axisBlockNum , clockwiseTimes ,traceFile)
+    atomExecutor(originalMatrix ,rotateMatrixAll,  axisChoice , axisBlockNum , clockwiseTimes ,traceFile)
 
     #文件关闭
     traceFile.close()
