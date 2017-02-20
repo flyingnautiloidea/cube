@@ -144,22 +144,25 @@ def blockToAxisValue(axisBlockNum):
 #     for
 
 #执行魔方动作的函数,注意，要判断目标方格的执行边界（尤其是最外层的，总是涉及到一整个面的旋转）根据坐标值和blockNum，完全可以确定应该如何操作矩阵了。
-def atomExecutor(originalMatrix , rotateMatrixAll , axisChoice , axisBlockNum , clockwiseTimes , traceFile):
-    #首先获取旋转矩阵
-    axisMetixChoice = rotateMatrixAll[axisChoice]
-    theRotateMetrix = axisMetixChoice[clockwiseTimes-1]
-    #获取坐标值，注意，这个坐标可能是1个值，也可能是2个值，因此是一个矩阵结构（理解成list也行）
-    axisValueList = blockToAxisValue(axisBlockNum)
-    listSize = len(axisValueList)
-
+def atomExecutor(originalMatrix , rotateMatrixAll , traceFile):
     #操作执行器,尝试循环100次
-    for round in range(10000):
+    #这个字符串用于内存缓存数据，每100000次，写一次磁盘。定义一个计数器。
+    cacheString = ''
+    counter = 0
+    for round in range(100000):
         #针对2阶魔方，有6个可动选项，每个选项有0，1，2，3倍的90度动作。
         #可动块区域选项配置，结果也应该提供
         axisChoice = random.randint(0,2)
         axisBlockNum = random.randint(0,N-1)
         #90度旋转倍数配置
         clockwiseTimes = random.randint(1, 4)
+        #首先获取旋转矩阵
+        axisMetixChoice = rotateMatrixAll[axisChoice]
+        theRotateMetrix = axisMetixChoice[clockwiseTimes-1]
+        #获取坐标值，注意，这个坐标可能是1个值，也可能是2个值，因此是一个矩阵结构（理解成list也行）
+        axisValueList = blockToAxisValue(axisBlockNum)
+        listSize = len(axisValueList)
+
         #以下针对原始矩阵中符合条件的向量进行旋转操作(以下是遍历＋操作过程)
         for sides in range( 6 ):
             allGridsInOneSide = OriginalMatrix[sides]
@@ -169,13 +172,12 @@ def atomExecutor(originalMatrix , rotateMatrixAll , axisChoice , axisBlockNum , 
                     if singleGrid[axisChoice] == axisValueList[axisCount]:
                         singleGrid = singleGrid.dot(theRotateMetrix)
 
-    traceFile.write(str(OriginalMatrix) + "\n")
-    traceFile.write("##########################" + "\n")
-
-
-
-
-
+        counter = counter + 1
+        cacheString = cacheString + str(OriginalMatrix) + "\n"
+        if counter > 10000:
+            traceFile.write(cacheString)
+            counter = 0
+            cacheString = ''
 
 
 #首先整个实现，目前是基于一次操作，10000次；针对10000次结果进行节点收敛，获取一个｛地址－value｝数据结构进行归并，得到最后的网络路径值；不断的这个过程，最终结果会趋向于收敛。
@@ -199,7 +201,7 @@ if __name__ == "__main__":
     #打开一个文件，用于保存状态
     traceFile = open('./traceRoute','w')
 
-    atomExecutor(originalMatrix ,rotateMatrixAll,  axisChoice , axisBlockNum , clockwiseTimes ,traceFile)
+    atomExecutor(originalMatrix , rotateMatrixAll , traceFile)
 
     #文件关闭
     traceFile.close()
